@@ -1,0 +1,1078 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IOE Lớp 4 - Luyện tập Tổng hợp</title>
+    <!-- Libraries from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+      body { font-family: 'Nunito', sans-serif; }
+      
+      /* Custom Scrollbar */
+      .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      
+      /* Simple Animations */
+      @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+      .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+      
+      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+
+      @keyframes bounceShort { 
+        0%, 100% { transform: translateY(0); } 
+        50% { transform: translateY(-5px); } 
+      }
+      .animate-bounce-short { animation: bounceShort 1s infinite; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- 1. TYPES & ENUMS ---
+        const QuestionType = {
+            MULTIPLE_CHOICE: 'MULTIPLE_CHOICE',
+            FILL_IN_BLANK: 'FILL_IN_BLANK',
+            REARRANGE: 'REARRANGE'
+        };
+
+        const GameState = {
+            START: 'START',
+            PLAYING: 'PLAYING',
+            FINISHED: 'FINISHED'
+        };
+
+        // --- 2. CONSTANTS & DATA ---
+        const cleanUrl = (url) => {
+            if (!url) return undefined;
+            return url.trim()
+                .replace(/\s+/g, '') // Remove spaces
+                .replace(/res\.ioe\.vnzedu/, 'res.ioe.vn/edu') // Fix domain typos
+                .replace(/res\.ioe\.vii/, 'res.ioe.vn')
+                .replace(/res\.ioe\.vm/, 'res.ioe.vn')
+                .replace(/Audio\s*mp3/i, 'Audio.mp3') // Fix extension
+                .replace(/ImageExam\s*(\d)/, 'ImageExam/$1') // Fix path separators
+                .replace(/Olympic\s*ExamData/, 'OlympicExamData')
+                .replace(/EOlympic\s*ExamData/, 'EOlympic/ExamData')
+                .replace(/'/g, '') // Remove accidental quotes
+                .replace(/Audio-mp3/i, 'Audio.mp3');
+        };
+
+        // Full Question Data for IOE Grade 4 Mixed Set
+        const QUIZ_DATA = [
+  // --- Block 1 ---
+  {
+    id: 1,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/1/medicine.mp3"),
+    correctAnswer: "medicine",
+    explanation: "Medicine: Thuốc."
+  },
+  {
+    id: 2,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-15.mp3"),
+    options: ["Mouse", "Ground", "Brown", "Crown"],
+    correctAnswer: "Brown",
+    explanation: "Brown: Màu nâu."
+  },
+  {
+    id: 3,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the missing word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/22/636864426361958644_Audio.mp3"),
+    correctAnswer: "hospital",
+    explanation: "Hospital: Bệnh viện."
+  },
+  {
+    id: 4,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-31.mp3"),
+    options: ["Mother", "Nurse", "Father", "Grandma"],
+    correctAnswer: "Nurse",
+    explanation: "Nurse: Y tá."
+  },
+  {
+    id: 5,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-2.mp3"),
+    options: ["Rice", "Nine", "Bye", "Nice"],
+    correctAnswer: "Nice",
+    explanation: "Nice: Tốt/Đẹp."
+  },
+  {
+    id: 6,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-60.mp3"),
+    options: ["Flower", "Floor", "Flash", "Black"],
+    correctAnswer: "Floor",
+    explanation: "Floor: Sàn nhà."
+  },
+  {
+    id: 7,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-6.mp3"),
+    options: ["Brown", "Black", "Balloon", "Blue"],
+    correctAnswer: "Balloon",
+    explanation: "Balloon: Bóng bay."
+  },
+  {
+    id: 8,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-43.mp3"),
+    options: ["Old", "Short", "Tall", "Slim"],
+    correctAnswer: "Slim",
+    explanation: "Slim: Mảnh khảnh."
+  },
+  {
+    id: 9,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/1/pork.mp3"),
+    correctAnswer: "pork",
+    explanation: "Pork: Thịt lợn."
+  },
+  {
+    id: 10,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-19.mp3"),
+    options: ["Dear", "Meat", "Near", "Year"],
+    correctAnswer: "Near",
+    explanation: "Near: Gần."
+  },
+  {
+    id: 11,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I play soccer at the _ _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-81.mp3"),
+    correctAnswer: "park",
+    explanation: "Park: Công viên."
+  },
+  {
+    id: 12,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I enjoy my _ _ _ _ on Sunday.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-82.mp3"),
+    correctAnswer: "time",
+    explanation: "Time: Thời gian."
+  },
+  {
+    id: 13,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I _ _ my laundry.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-80.mp3"),
+    correctAnswer: "do",
+    explanation: "Do laundry: Giặt giũ."
+  },
+  {
+    id: 14,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Thanks for your _ _ _ _ _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/2/11.mp3"),
+    correctAnswer: "present",
+    explanation: "Present: Món quà."
+  },
+  {
+    id: 15,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "My favourite TV _ _ _ _ is called Billions.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-84.mp3"),
+    correctAnswer: "show",
+    explanation: "TV show: Chương trình truyền hình."
+  },
+  {
+    id: 16,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I order p_ _ _ _ or eat at a restaurant.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-72.mp3"),
+    correctAnswer: "izza",
+    explanation: "Pizza: Bánh pizza."
+  },
+  {
+    id: 17,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I _ _ _ _ the windows.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-92.mp3"),
+    correctAnswer: "open",
+    explanation: "Open: Mở."
+  },
+  {
+    id: 18,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "What is your favourite mo_ _ _ ?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-101.mp3"),
+    correctAnswer: "vie",
+    explanation: "Movie: Phim."
+  },
+  {
+    id: 19,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Where did she buy her pants?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-118.mp3"),
+    options: ["Online", "On Amazon", "In Japan", "In San Francisco"],
+    correctAnswer: "Online",
+    explanation: "Đáp án: Online."
+  },
+  {
+    id: 20,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "How many brothers and sisters does Sorie have?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-113.mp3"),
+    options: ["Five brothers", "Five brothers and one sister", "Four brothers and two sisters", "Six brothers"],
+    correctAnswer: "Five brothers and one sister",
+    explanation: "Đáp án: 5 anh em trai và 1 chị em gái."
+  },
+
+  // --- Block 2 ---
+  {
+    id: 21,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/23/636864827501802142_Audio.mp3"),
+    correctAnswer: "engineer",
+    explanation: "Engineer: Kỹ sư."
+  },
+  {
+    id: 22,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "David doesn’t like his _ _ _ _ lessons very much.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/22/636864425005705954_Audio.mp3"),
+    correctAnswer: "Math",
+    explanation: "Math: Toán học."
+  },
+  {
+    id: 23,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/22/636864426194926971_Audio.mp3"),
+    correctAnswer: "doctor",
+    explanation: "Doctor: Bác sĩ."
+  },
+  {
+    id: 24,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-34.mp3"),
+    options: ["Animal", "Primary", "Library", "Festival"],
+    correctAnswer: "Library",
+    explanation: "Library: Thư viện."
+  },
+  {
+    id: 25,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Where’s my _ _ _ _ _ of chocolate?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/2/13.mp3"),
+    correctAnswer: "piece",
+    explanation: "Piece: Mẩu, miếng."
+  },
+  {
+    id: 26,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-1.mp3"),
+    options: ["Mother", "Brother", "Father", "Farmer"],
+    correctAnswer: "Father",
+    explanation: "Father: Bố."
+  },
+  {
+    id: 27,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Wear your school _ _ _ _ _ _ _ on Wednesday.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/23/636864827070081206_Audio.mp3"),
+    correctAnswer: "uniform",
+    explanation: "Uniform: Đồng phục."
+  },
+  {
+    id: 28,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-11.mp3"),
+    options: ["Saturday", "February", "Lemonade", "Tuesday"],
+    correctAnswer: "Saturday",
+    explanation: "Saturday: Thứ Bảy."
+  },
+  {
+    id: 29,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "There is a _ _ _ _ _ _ near my home.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/21.mp3"),
+    correctAnswer: "museum",
+    explanation: "Museum: Bảo tàng."
+  },
+  {
+    id: 30,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-59.mp3"),
+    options: ["Fishing", "Evening", "Reading", "Morning"],
+    correctAnswer: "Reading",
+    explanation: "Reading: Đang đọc."
+  },
+  {
+    id: 31,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "What do you do for _ _ _ ?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-59.mp3"),
+    correctAnswer: "fun",
+    explanation: "For fun: Để giải trí."
+  },
+  {
+    id: 32,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "She’s a teacher. She works in a _ _ _ _ _ _ _ school.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/2/12.mp3"),
+    correctAnswer: "primary",
+    explanation: "Primary school: Trường tiểu học."
+  },
+  {
+    id: 33,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Mai is _ _ _ _ _ _ _ _ _ _ her house.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/2/18.mp3"),
+    correctAnswer: "decorating",
+    explanation: "Decorating: Trang trí."
+  },
+  {
+    id: 34,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Where did the children go yesterday?",
+    options: ["They went to the park.", "They went to a museum.", "They went to the zoo.", "They went to a farm."],
+    correctAnswer: "They went to the zoo.",
+    explanation: "Zoo: Sở thú."
+  },
+  {
+    id: 35,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "The _ _ _ _ _ _ has eyes at the front of its head.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening414.mp3"),
+    correctAnswer: "spider",
+    explanation: "Spider: Con nhện."
+  },
+  {
+    id: 36,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "The snow is so much _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-99.mp3"),
+    correctAnswer: "fun",
+    explanation: "Fun: Vui."
+  },
+  {
+    id: 37,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "The bread in this bakery is _ _ _ _ _ _ _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/2/20.mp3"),
+    correctAnswer: "delicious",
+    explanation: "Delicious: Ngon."
+  },
+  {
+    id: 38,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "But on Thursday, we went _ _ _ _ _ _ _ _ in the lake.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening418.mp3"),
+    correctAnswer: "swimming",
+    explanation: "Swimming: Bơi lội."
+  },
+  {
+    id: 39,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "What’s the girl’s full name? – She’s Sue _ _ _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/3/22.mp3"),
+    correctAnswer: "White",
+    explanation: "Sue White (Tên riêng)."
+  },
+  {
+    id: 40,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "How many brothers and sisters does Sorie have?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-113.mp3"),
+    options: ["Six brothers", "Five brothers and one sister", "Four brothers and two sisters", "Five brothers"],
+    correctAnswer: "Five brothers and one sister",
+    explanation: "Đáp án: 5 anh em trai và 1 chị em gái."
+  },
+
+  // --- Block 3 ---
+  {
+    id: 41,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-34.mp3"),
+    options: ["Animal", "Primary", "Festival", "Library"],
+    correctAnswer: "Library",
+    explanation: "Library: Thư viện."
+  },
+  {
+    id: 42,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (8 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening44.mp3"),
+    correctAnswer: "mountain",
+    explanation: "Mountain: Ngọn núi."
+  },
+  {
+    id: 43,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/23/636864827501802142_Audio.mp3"),
+    correctAnswer: "engineer",
+    explanation: "Engineer: Kỹ sư."
+  },
+  {
+    id: 44,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-24.mp3"),
+    options: ["Office", "Hospital", "Field", "Factory"],
+    correctAnswer: "Factory",
+    explanation: "Factory: Nhà máy."
+  },
+  {
+    id: 45,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "She lives on _ _ _ _ Street.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/23.mp3"),
+    correctAnswer: "Main",
+    explanation: "Main Street: Đường chính."
+  },
+  {
+    id: 46,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (6 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening43.mp3"),
+    correctAnswer: "picnic",
+    explanation: "Picnic: Chuyến dã ngoại."
+  },
+  {
+    id: 47,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (6 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening410.mp3"),
+    correctAnswer: "monkey",
+    explanation: "Monkey: Con khỉ."
+  },
+  {
+    id: 48,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-2.mp3"),
+    options: ["Bye", "Nine", "Rice", "Nice"],
+    correctAnswer: "Nice",
+    explanation: "Nice: Tốt/Đẹp."
+  },
+  {
+    id: 49,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-3.mp3"),
+    options: ["August", "April", "Australia", "American"],
+    correctAnswer: "April",
+    explanation: "April: Tháng Tư."
+  },
+  {
+    id: 50,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (6 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/22/636864426471958760_Audio.mp3"),
+    correctAnswer: "police",
+    explanation: "Police: Cảnh sát."
+  },
+  {
+    id: 51,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I don't study, don't work and don’t clean my house on _ _ _ _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-70.mp3"),
+    correctAnswer: "Sunday",
+    explanation: "Sunday: Chủ nhật."
+  },
+  {
+    id: 52,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Where are they from? – They’re from _ _ _ _ _ _ _ .",
+    audioUrl: cleanUrl("https://res.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/22/636864427199304004_Audio.mp3"),
+    correctAnswer: "America",
+    explanation: "America: Nước Mỹ."
+  },
+  {
+    id: 53,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I cook a nice _ _ _ _ _ fast.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-67.mp3"),
+    correctAnswer: "lunch",
+    explanation: "Lunch: Bữa trưa."
+  },
+  {
+    id: 54,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "The _ _ _ _ _ _ _ jumps out of the water, and little fish are scared.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/28.mp3"),
+    correctAnswer: "dolphin",
+    explanation: "Dolphin: Cá heo."
+  },
+  {
+    id: 55,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I _ _ my laundry.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-80.mp3"),
+    correctAnswer: "do",
+    explanation: "Do laundry: Giặt giũ."
+  },
+  {
+    id: 56,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Mai is _ _ _ _ _ _ _ _ _ _ her house.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/2/18.mp3"),
+    correctAnswer: "decorating",
+    explanation: "Decorating: Trang trí."
+  },
+  {
+    id: 57,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I hate c_ _ _ weather.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-87.mp3"),
+    correctAnswer: "old",
+    explanation: "Cold: Lạnh."
+  },
+  {
+    id: 58,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Would you like to go to the _ _ _ _ _ _ ? - Great idea!",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/2/19.mp3"),
+    correctAnswer: "cinema",
+    explanation: "Cinema: Rạp phim."
+  },
+  {
+    id: 59,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "She has that shirt in six colours, but not in _____.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-112.mp3"),
+    options: ["black", "orange", "purple", "blue"],
+    correctAnswer: "purple",
+    explanation: "Purple: Màu tím."
+  },
+  {
+    id: 60,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "What’s Pat’s favourite lunch?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/3/25.mp3"),
+    options: ["Meat and potatoes.", "Chicken and rice.", "Burgers and French fries.", "Meat and tomatoes."],
+    correctAnswer: "Burgers and French fries.",
+    explanation: "Đáp án: Burgers và Khoai tây chiên."
+  },
+
+  // --- Block 4 ---
+  {
+    id: 61,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-40.mp3"),
+    options: ["Dream", "Draw", "Close", "Small"],
+    correctAnswer: "Small",
+    explanation: "Small: Nhỏ."
+  },
+  {
+    id: 62,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De1/1/dictionary.mp3"),
+    correctAnswer: "dictionary",
+    explanation: "Dictionary: Từ điển."
+  },
+  {
+    id: 63,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-1.mp3"),
+    options: ["Mother", "Father", "Brother", "Farmer"],
+    correctAnswer: "Father",
+    explanation: "Father: Bố."
+  },
+  {
+    id: 64,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (11 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening49.mp3"),
+    correctAnswer: "supermarket",
+    explanation: "Supermarket: Siêu thị."
+  },
+  {
+    id: 65,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (7 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening45.mp3"),
+    correctAnswer: "village",
+    explanation: "Village: Ngôi làng."
+  },
+  {
+    id: 66,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word:",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/1/medicine.mp3"),
+    correctAnswer: "medicine",
+    explanation: "Medicine: Thuốc."
+  },
+  {
+    id: 67,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (9 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/ImageExam/2019/2/22/636864426658990659_Audio.mp3"),
+    correctAnswer: "breakfast",
+    explanation: "Breakfast: Bữa sáng."
+  },
+  {
+    id: 68,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-9.mp3"),
+    options: ["Office", "Hospital", "Field", "Factory"],
+    correctAnswer: "Office",
+    explanation: "Office: Văn phòng."
+  },
+  {
+    id: 69,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "Listen and choose the correct answer.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-59.mp3"),
+    options: ["Morning", "Reading", "Evening", "Fishing"],
+    correctAnswer: "Reading",
+    explanation: "Reading: Đang đọc."
+  },
+  {
+    id: 70,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Listen and write the word (6 letters):",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening43.mp3"),
+    correctAnswer: "picnic",
+    explanation: "Picnic: Chuyến dã ngoại."
+  },
+  {
+    id: 71,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I love pizza, but I don't like really _ _ _ pizzas.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-74.mp3"),
+    correctAnswer: "hot",
+    explanation: "Hot: Cay/Nóng."
+  },
+  {
+    id: 72,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I clean my kitchen and make my _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-103.mp3"),
+    correctAnswer: "bed",
+    explanation: "Make my bed: Dọn giường."
+  },
+  {
+    id: 73,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Some owls can move their head around and see _ _ _ _ _ _ !",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/3/28.mp3"),
+    correctAnswer: "behind",
+    explanation: "Behind: Phía sau."
+  },
+  {
+    id: 74,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Her _ _ _ _ urite comedy is Ace Ventura.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-77.mp3"),
+    correctAnswer: "favo",
+    explanation: "Favourite: Yêu thích."
+  },
+  {
+    id: 75,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I don't study, don't work and don’t clean my house on _ _ _ _ _ _ .",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-70.mp3"),
+    correctAnswer: "Sunday",
+    explanation: "Sunday: Chủ nhật."
+  },
+  {
+    id: 76,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "I love the out_ _ _ _ s.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-70.mp3"),
+    correctAnswer: "door",
+    explanation: "Outdoors: Ngoài trời."
+  },
+  {
+    id: 77,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "My favourite TV _ _ _ _ is called Billions.",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/Chinhthuc/Captinh/Lop4/Amthanh/E4-T-84.mp3"),
+    correctAnswer: "show",
+    explanation: "TV show: Chương trình truyền hình."
+  },
+  {
+    id: 78,
+    type: QuestionType.FILL_IN_BLANK,
+    questionText: "Would you like to go to the _ _ _ _ _ _ ? - Great idea!",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/2/19.mp3"),
+    correctAnswer: "cinema",
+    explanation: "Cinema: Rạp chiếu phim."
+  },
+  {
+    id: 79,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "When is Michael going to play football?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/IOE%202022-2023/TraiNghiem/E4/R3/nghe/Listening420.mp3"),
+    options: ["He's going to play football on Friday.", "He's going to play football on Sunday.", "He's going to play football on Monday.", "He's going to play football on Saturday."],
+    correctAnswer: "He's going to play football on Saturday.",
+    explanation: "Đáp án: Thứ Bảy."
+  },
+  {
+    id: 80,
+    type: QuestionType.MULTIPLE_CHOICE,
+    questionText: "What’s Pat’s favourite lunch?",
+    audioUrl: cleanUrl("https://cdn.ioe.vn/edu/EOlympic/ExamData/Thi_cac_cap/2019-2020/Tinh_Thanhpho/L4/Nghe/De2/3/25.mp3"),
+    options: ["Chicken and rice.", "Meat and tomatoes.", "Burgers and French fries.", "Meat and potatoes."],
+    correctAnswer: "Burgers and French fries.",
+    explanation: "Đáp án: Burgers và Khoai tây chiên."
+  }
+];
+
+        // --- 3. COMPONENTS ---
+        const Button = ({ children, variant = 'primary', size = 'md', className = '', ...props }) => {
+             const baseStyles = "inline-flex items-center justify-center font-bold transition-all duration-200 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transform active:scale-95";
+             const variants = {
+                primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/30 focus:ring-blue-500",
+                secondary: "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30 focus:ring-emerald-500",
+                danger: "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/30 focus:ring-rose-500",
+                outline: "bg-white border-2 border-slate-300 text-slate-600 hover:border-blue-500 hover:text-blue-600"
+             };
+             const sizes = { sm: "px-4 py-1.5 text-sm", md: "px-6 py-3 text-base", lg: "px-8 py-4 text-lg" };
+             return <button className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>{children}</button>;
+        };
+
+        const StartScreen = ({ onStart }) => {
+            const [name, setName] = useState('');
+            const handleSubmit = (e) => { e.preventDefault(); if (name.trim()) onStart(name.trim()); };
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center animate-slide-up">
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-extrabold text-slate-800 mb-2">IOE Lớp 4 - Luyện tập Tổng hợp</h1>
+                            <p className="text-slate-500">Luyện kỹ năng Nghe và Từ vựng</p>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="text-left"><label className="block text-sm font-medium text-slate-700 mb-2">Tên của bạn</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nhập tên..." className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" required /></div>
+                            <Button type="submit" className="w-full" size="lg" disabled={!name.trim()}>Bắt đầu chơi</Button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        const AudioPlayer = ({ src }) => {
+            const audioRef = useRef(null);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const togglePlay = () => { if (audioRef.current) { if (isPlaying) audioRef.current.pause(); else audioRef.current.play(); setIsPlaying(!isPlaying); } };
+            return (
+                <div className="flex items-center gap-3 bg-slate-100 p-3 rounded-lg border border-slate-200">
+                    <button type="button" onClick={togglePlay} className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">{isPlaying ? '❚❚' : '▶'}</button>
+                    <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Nghe câu hỏi</span>
+                    <audio ref={audioRef} src={src} onEnded={() => setIsPlaying(false)} className="hidden" />
+                </div>
+            );
+        };
+
+        const QuestionCard = ({ question, onAnswer, isAnswered, userAnswer }) => {
+            const [inputVal, setInputVal] = useState('');
+            const [selectedParts, setSelectedParts] = useState([]);
+            const [showHint, setShowHint] = useState(false);
+            const [hintText, setHintText] = useState('');
+
+            useEffect(() => { 
+                setInputVal(''); 
+                setSelectedParts([]); 
+                setShowHint(false);
+                setHintText('');
+            }, [question.id]);
+
+            const normalize = (str) => str ? str.replace(/[.,!?;:'"]/g, '').replace(/\s+/g, ' ').trim().toLowerCase() : "";
+            const isCorrect = () => userAnswer && normalize(userAnswer) === normalize(question.correctAnswer);
+
+            const handleMCSelect = (opt) => !isAnswered && onAnswer(opt);
+            const handleInputSubmit = (e) => { e.preventDefault(); if (!isAnswered && inputVal.trim()) onAnswer(inputVal.trim()); };
+            const handlePartClick = (part) => { if (!isAnswered) setSelectedParts(prev => prev.includes(part) ? prev.filter(p => p !== part) : [...prev, part]); };
+            const handleRearrangeSubmit = () => !isAnswered && selectedParts.length > 0 && onAnswer(selectedParts.join(' '));
+
+            const generateHint = () => {
+                if (hintText) return;
+                let text = '';
+                if (question.type === QuestionType.MULTIPLE_CHOICE) {
+                    const wrongOptions = question.options?.filter(opt => opt !== question.correctAnswer) || [];
+                    if (wrongOptions.length > 0) {
+                         const randomWrong = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+                         text = `Gợi ý 50/50: Loại bỏ đáp án "${randomWrong}".`;
+                    }
+                } else if (question.type === QuestionType.FILL_IN_BLANK) {
+                     const answer = question.correctAnswer.trim();
+                     text = `Từ này có ${answer.length} chữ cái. Bắt đầu bằng "${answer.charAt(0).toUpperCase()}...".`;
+                } else {
+                     const words = question.correctAnswer.split(' ');
+                     const hintPhrase = words.slice(0, Math.max(1, Math.floor(words.length/2))).join(' ');
+                     text = `Gợi ý: Câu bắt đầu bằng "${hintPhrase}..."`;
+                }
+                setHintText(text);
+            };
+
+            return (
+                <div className="w-full max-w-3xl mx-auto mb-8 animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-extrabold uppercase">{question.type.replace(/_/g, ' ')}</span>
+                                {!isAnswered && (
+                                    <button onClick={() => { generateHint(); setShowHint(!showHint); }} className="px-3 py-1 text-xs font-bold border rounded-full bg-yellow-50 text-yellow-600 border-yellow-200 hover:bg-yellow-100">
+                                        {showHint ? 'Ẩn Gợi ý' : 'Gợi ý'}
+                                    </button>
+                                )}
+                            </div>
+                            <span className="text-xs font-bold text-slate-300">ID: {question.id}</span>
+                        </div>
+                        <div className="p-6 sm:p-10">
+                            <div className="mb-6 space-y-4">
+                                {question.imageUrl && <div className="flex justify-center"><img src={question.imageUrl} className="max-h-72 rounded-lg shadow-md" onError={(e) => e.target.style.display = 'none'} /></div>}
+                                {question.audioUrl && <div className="bg-blue-50 p-4 rounded-xl"><AudioPlayer src={question.audioUrl} /></div>}
+                            </div>
+
+                            {showHint && !isAnswered && (
+                                <div className="mb-6 bg-yellow-50 p-3 rounded-lg text-sm text-yellow-800 border border-yellow-200">
+                                    <strong>Gợi ý:</strong> {hintText}
+                                </div>
+                            )}
+
+                            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6">{question.questionText}</h2>
+                            
+                            {question.type === QuestionType.MULTIPLE_CHOICE && (
+                                <div className="grid grid-cols-1 gap-3">
+                                    {question.options?.map((opt, idx) => (
+                                        <button key={idx} onClick={() => handleMCSelect(opt)} disabled={isAnswered} className={`w-full p-4 rounded-xl text-left border-2 transition-all ${isAnswered ? (opt === question.correctAnswer ? 'bg-green-100 border-green-500 text-green-900' : opt === userAnswer ? 'bg-red-100 border-red-500 text-red-900' : 'bg-slate-50 opacity-60') : 'bg-white hover:border-blue-400 hover:shadow-md'}`}>
+                                            <span className="font-bold mr-4 w-6 inline-block">{String.fromCharCode(65 + idx)}</span>{opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {question.type === QuestionType.FILL_IN_BLANK && (
+                                <form onSubmit={handleInputSubmit} className="flex flex-col gap-2">
+                                    <div className="flex gap-3">
+                                        <input type="text" value={isAnswered ? userAnswer : inputVal} onChange={(e) => setInputVal(e.target.value)} disabled={isAnswered} className={`flex-1 p-4 rounded-xl border-2 text-lg outline-none ${isAnswered ? (isCorrect() ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50') : 'border-slate-200 focus:border-blue-500'}`} placeholder="Nhập đáp án..." />
+                                        {!isAnswered && <Button type="submit">Trả lời</Button>}
+                                    </div>
+                                    {!isAnswered && <div className="text-xs text-slate-400 text-right">Đã nhập: {inputVal.length} ký tự</div>}
+                                </form>
+                            )}
+
+                            {question.type === QuestionType.REARRANGE && (
+                                <div className="space-y-6">
+                                    <div className="flex flex-wrap gap-3 p-4 bg-slate-50 rounded-xl border shadow-inner min-h-[60px]">
+                                        {question.rearrangeParts?.map((part, idx) => (
+                                            <button key={idx} onClick={() => handlePartClick(part)} disabled={isAnswered || selectedParts.includes(part)} className={`px-4 py-2 rounded-lg bg-white border shadow-sm transition-all active:scale-95 ${selectedParts.includes(part) ? 'opacity-0 pointer-events-none' : 'hover:border-blue-400'}`}>{part}</button>
+                                        ))}
+                                    </div>
+                                    <div className={`min-h-[80px] p-4 rounded-xl border-2 border-dashed flex flex-wrap gap-2 items-center ${isAnswered ? (isCorrect() ? 'border-green-500 bg-green-50/50' : 'border-red-500 bg-red-50/50') : 'border-slate-300 bg-white'}`}>
+                                         {selectedParts.length === 0 && !isAnswered && <div className="w-full text-center text-slate-400 italic">Bấm từ để sắp xếp...</div>}
+                                        {selectedParts.map((part, idx) => <button key={idx} onClick={() => handlePartClick(part)} disabled={isAnswered} className="bg-blue-100 text-blue-900 px-3 py-1.5 rounded-lg border border-blue-200 font-medium shadow-sm hover:bg-red-100 hover:text-red-800 transition-colors">{part}</button>)}
+                                    </div>
+                                    {!isAnswered && <div className="flex justify-end"><Button onClick={handleRearrangeSubmit} disabled={selectedParts.length === 0}>Xác nhận</Button></div>}
+                                </div>
+                            )}
+
+                            {isAnswered && (
+                                <div className={`mt-8 p-6 rounded-xl border-l-4 shadow-sm animate-fade-in ${isCorrect() ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
+                                    <div className="flex items-start gap-4">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white font-bold ${isCorrect() ? 'bg-green-500' : 'bg-red-500'}`}>{isCorrect() ? '✓' : '✕'}</div>
+                                        <div>
+                                            <h3 className={`font-bold text-xl mb-2 ${isCorrect() ? 'text-green-800' : 'text-red-800'}`}>{isCorrect() ? 'Chính xác!' : 'Chưa chính xác'}</h3>
+                                            {!isCorrect() && <div className="mb-2"><span className="text-red-600 font-bold text-sm uppercase">Đáp án đúng:</span> <span className="font-bold text-slate-800">{question.correctAnswer}</span></div>}
+                                            <div className="bg-white/60 p-3 rounded-lg text-slate-700 text-sm"><span className="font-bold text-blue-600 block mb-1">Giải thích:</span>{question.explanation}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const QuestionGrid = ({ questions, userAnswers, currentIndex, onJump, onClose }) => {
+            const getStatusColor = (q, idx) => {
+                const ans = userAnswers.find(a => a.questionId === q.id);
+                if (idx === currentIndex) return "ring-2 ring-blue-500 border-blue-500 text-blue-600 bg-white";
+                if (!ans) return "bg-slate-100 text-slate-400 border-transparent";
+                return ans.isCorrect ? "bg-green-500 text-white border-green-600" : "bg-red-500 text-white border-red-600";
+            };
+            return (
+                <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
+                        <div className="p-6 border-b flex justify-between items-center bg-slate-50">
+                            <div><h2 className="text-xl font-bold">Danh sách câu hỏi</h2><p className="text-sm text-slate-500">Đã làm: {userAnswers.length} / {questions.length}</p></div>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full">✕</button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar"><div className="grid grid-cols-5 sm:grid-cols-10 gap-3">{questions.map((q, idx) => (<button key={q.id} onClick={() => { onJump(idx); onClose(); }} className={`h-10 w-10 rounded-lg font-bold border transition-all ${getStatusColor(q, idx)}`}>{idx + 1}</button>))}</div></div>
+                        <div className="p-4 bg-slate-50 border-t text-xs text-slate-500 flex gap-4 justify-center flex-wrap"><div className="flex items-center gap-2"><span className="w-3 h-3 bg-green-500 rounded-full"></span> Đúng</div><div className="flex items-center gap-2"><span className="w-3 h-3 bg-red-500 rounded-full"></span> Sai</div><div className="flex items-center gap-2"><span className="w-3 h-3 ring-2 ring-blue-500 rounded-full"></span> Đang làm</div><div className="flex items-center gap-2"><span className="w-3 h-3 bg-slate-200 rounded-full"></span> Chưa làm</div></div>
+                    </div>
+                </div>
+            );
+        }
+
+        const ResultScreen = ({ userName, userAnswers, onRetryAll, onRetryWrong }) => {
+            const correct = userAnswers.filter(a => a.isCorrect).length;
+            const total = userAnswers.length;
+            const percent = total > 0 ? Math.round((correct/total)*100) : 0;
+            const hasWrong = correct < total;
+            const score = correct * 10;
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fade-in bg-slate-50">
+                    <div className="bg-white rounded-3xl shadow-xl p-8 max-w-2xl w-full text-center">
+                        <div className="mb-6 relative inline-block">
+                            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" strokeWidth="12" />
+                                <circle cx="60" cy="60" r="54" fill="none" stroke={percent >= 80 ? '#10b981' : percent >= 50 ? '#3b82f6' : '#ef4444'} strokeWidth="12" strokeDasharray="339.292" strokeDashoffset={339.292 - (339.292 * percent) / 100} className="transition-all duration-1000 ease-out" />
+                            </svg>
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-slate-800">{percent}%</div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Hoàn thành bài thi!</h2>
+                        <p className="text-slate-600 mb-4">Chúc mừng <b>{userName}</b></p>
+                        
+                        <div className="mb-8 inline-flex items-baseline gap-2 bg-blue-50 px-6 py-2 rounded-2xl border border-blue-100">
+                             <span className="text-4xl font-extrabold text-blue-600">{score}</span>
+                             <span className="text-lg text-slate-500 font-bold">điểm</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-8 bg-slate-50 p-4 rounded-xl">
+                            <div><div className="text-2xl font-bold text-green-600">{correct}</div><div className="text-xs uppercase text-slate-500 font-bold">Đúng</div></div>
+                            <div className="border-l border-slate-200"><div className="text-2xl font-bold text-red-500">{total - correct}</div><div className="text-xs uppercase text-slate-500 font-bold">Sai</div></div>
+                        </div>
+                        {hasWrong && (
+                            <div className="text-left mb-6 max-h-48 overflow-y-auto custom-scrollbar border-t border-b py-4">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">Cần xem lại</h3>
+                                <div className="space-y-2">
+                                    {userAnswers.filter(a => !a.isCorrect).map((ans, i) => {
+                                        const q = QUIZ_DATA.find(x => x.id === ans.questionId);
+                                        return q ? <div key={i} className="text-sm p-2 bg-red-50 rounded"><span className="font-bold text-red-500 mr-2">#{q.id}</span> {q.questionText} <br/><span className="text-xs text-slate-500">Đáp án: {q.correctAnswer}</span></div> : null;
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex gap-4 justify-center">
+                            <Button onClick={onRetryAll}>Chơi lại từ đầu</Button>
+                            {hasWrong && <Button onClick={onRetryWrong} variant="danger">Làm lại câu sai</Button>}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [gameState, setGameState] = useState(GameState.START);
+            const [userName, setUserName] = useState('');
+            const [activeQuestions, setActiveQuestions] = useState([]);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [userAnswers, setUserAnswers] = useState([]);
+            const [showGrid, setShowGrid] = useState(false);
+
+            const handleStart = (name) => { setUserName(name); startSession(QUIZ_DATA); };
+            const startSession = (questions) => { setActiveQuestions(questions); setCurrentIndex(0); setUserAnswers([]); setGameState(GameState.PLAYING); };
+            
+            const handleAnswer = (response) => {
+                const q = activeQuestions[currentIndex];
+                const normalize = (s) => s.replace(/[.,!?;:'"]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+                const isCorrect = normalize(response) === normalize(q.correctAnswer);
+                setUserAnswers(prev => [...prev.filter(a => a.questionId !== q.id), { questionId: q.id, userResponse: response, isCorrect }]);
+            };
+
+            const handleNext = () => currentIndex < activeQuestions.length - 1 && setCurrentIndex(prev => prev + 1);
+            const handlePrev = () => currentIndex > 0 && setCurrentIndex(prev => prev - 1);
+            const handleSkip = () => handleNext();
+            const handleFinish = () => setGameState(GameState.FINISHED);
+            
+            const handleRetryWrong = () => {
+                const wrongIds = userAnswers.filter(a => !a.isCorrect).map(a => a.questionId);
+                startSession(QUIZ_DATA.filter(q => wrongIds.includes(q.id)));
+            };
+
+            if (gameState === GameState.START) return <StartScreen onStart={handleStart} />;
+            if (gameState === GameState.FINISHED) return <ResultScreen userName={userName} userAnswers={userAnswers} onRetryAll={() => startSession(QUIZ_DATA)} onRetryWrong={handleRetryWrong} />;
+
+            const currentQ = activeQuestions[currentIndex];
+            const answer = userAnswers.find(a => a.questionId === currentQ.id);
+            const isAnswered = !!answer;
+            const isLast = currentIndex === activeQuestions.length - 1;
+            const allAnswered = userAnswers.length === activeQuestions.length;
+            
+            // Calculate Score: 10 points per correct answer
+            const currentScore = userAnswers.filter(a => a.isCorrect).length * 10;
+
+            return (
+                <div className="min-h-screen bg-slate-100 flex flex-col items-center py-8 px-4 pb-32 relative">
+                    <div className="w-full max-w-3xl flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
+                        <div className="flex flex-col"><span className="text-xs font-bold text-slate-400 uppercase">Người chơi</span><span className="font-bold text-slate-700">{userName}</span></div>
+                        
+                        <div className="flex flex-col items-center px-4 border-l border-r border-slate-100">
+                             <span className="text-xs font-bold text-slate-400 uppercase">Điểm số</span>
+                             <span className="font-bold text-emerald-600 text-xl">{currentScore}</span>
+                        </div>
+
+                        <button onClick={() => setShowGrid(true)} className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-bold text-slate-600">Danh sách</button>
+                        <div className="flex flex-col items-end"><span className="text-xs font-bold text-slate-400 uppercase">Tiến độ</span><span className="font-bold text-blue-600 text-xl">{currentIndex + 1} <span className="text-slate-400 text-sm">/ {activeQuestions.length}</span></span></div>
+                    </div>
+                    <div className="w-full max-w-3xl bg-slate-200 rounded-full h-2 mb-8 overflow-hidden"><div className="bg-blue-600 h-full transition-all duration-300 ease-out" style={{ width: `${(userAnswers.length / activeQuestions.length) * 100}%` }}></div></div>
+                    
+                    <QuestionCard question={currentQ} onAnswer={handleAnswer} isAnswered={isAnswered} userAnswer={answer?.userResponse} />
+                    
+                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10">
+                        <div className="w-full max-w-3xl mx-auto flex justify-between items-center gap-4">
+                            <Button onClick={handlePrev} variant="outline" disabled={currentIndex === 0} className="w-24">← Trước</Button>
+                            <div className="flex-1 flex justify-center gap-3">
+                                {isAnswered ? (
+                                    <>
+                                        {!isLast && <Button onClick={handleNext} size="md" className="shadow-xl shadow-blue-500/20 animate-bounce-short">Câu tiếp theo →</Button>}
+                                        <Button onClick={handleFinish} variant={allAnswered ? "secondary" : "danger"}>Nộp bài</Button>
+                                    </>
+                                ) : <Button onClick={handleSkip} variant="outline" className="text-slate-400 hover:text-slate-600">Bỏ qua</Button>}
+                            </div>
+                            <Button onClick={handleNext} variant="outline" disabled={isLast} className={`w-24 ${isAnswered ? 'opacity-0 pointer-events-none hidden sm:flex' : ''}`}>Sau →</Button>
+                        </div>
+                    </div>
+                    {showGrid && <QuestionGrid questions={activeQuestions} userAnswers={userAnswers} currentIndex={currentIndex} onJump={setCurrentIndex} onClose={() => setShowGrid(false)} />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
